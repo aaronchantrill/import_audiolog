@@ -1,0 +1,9 @@
+[Plugin]
+Name = Import Audiolog
+Version = 1.0.0
+URL = http://naomiproject.github.io/
+Description = Import and merge audiolog records exported by the archive_audiolog plugin
+
+[Author]
+Name = Naomi Project
+URL = http://naomiproject.github.io/
