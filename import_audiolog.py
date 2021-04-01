@@ -19,25 +19,7 @@ class ImportAudiologPlugin(plugin.STTTrainerPlugin):
             audiolog_dir = paths.sub("audiolog")
             if(command==""):
                 # Create the form for uploading an audiolog file
-                response.append('''<script type="text/javascript">''')
-                response.append('''function submitForm(){''')
-                response.append('''    var file = document.getElementById('file').files[0];''')
-                response.append('''    var formData = new FormData();''')
-                response.append('''    formData.append('file', file, file.name);''')
-                response.append('''    var xhr = new XMLHttpRequest();''')
-                response.append('''    xhr.open('POST', location.toString(), true);''')
-                response.append('''    xhr.onload = function () {''')
-                response.append('''        if (xhr.status == 200) {''')
-                response.append('''            document.getElementById("Result").innerHTML = 'Upload copmlete!';''')
-                response.append('''        } else {''')
-                response.append('''            document.getElementById("Result").innerHTML = 'Upload error. Try again.';''')
-                response.append('''        }''')
-                response.append('''    };''')
-                response.append('''    xhr.send(formData);''')
-                response.append('''    return false;''')
-                response.append('''}''')
-                response.append('''</script>''')
-                response.append('''<form id="form" method="post" onsubmit="var file = document.getElementById('myfile').files[0]; var formData = new FormData(); formData.append('engine', 'Import Audiolog'); formData.append('command', 'processArchive'); formData.append('file', file, file.name); var xhr = new XMLHttpRequest(); xhr.onload = function () { if (xhr.status == 200) {var response=JSON.parse(this.responseText); document.getElementById('Result').innerHTML += response.message; } else { document.getElementById('Result').innerHTML += 'Upload error. Try again.'; } }; xhr.open('POST', location.toString(), true); xhr.send(formData); return false;" enctype="multipart/form-data">''')
+                response.append('''<form id="form" method="post" onsubmit="startSpinner(); var file = document.getElementById('myfile').files[0]; var formData = new FormData(); formData.append('engine', 'Import Audiolog'); formData.append('command', 'processArchive'); formData.append('file', file, file.name); var xhr = new XMLHttpRequest(); xhr.onload = function () { stopSpinner(); if (xhr.status == 200) {var response=JSON.parse(this.responseText); document.getElementById('Result').innerHTML += response.message; } else { document.getElementById('Result').innerHTML += 'Upload error. Try again.'; } }; xhr.open('POST', location.toString(), true); xhr.send(formData); return false;" enctype="multipart/form-data">''')
                 response.append('''<input type="hidden" name="engine" value="Import Audiolog"/>''')
                 response.append('''<label for="file">Archive file:</label><input id="myfile" name="file" type="file" accept=".tgz"/><br />''')
                 response.append('''<input type="submit" value="Submit"/>''')
@@ -82,7 +64,7 @@ class ImportAudiologPlugin(plugin.STTTrainerPlugin):
                                 response.append("extracting {}<br />\n".format(row['filename']))
                                 with open(wavfile_path, 'wb') as f:
                                     f.write(archive_file.extractfile(row['filename']).read())
-                                response.append('Extracted {}'.format(wavfile_path))
+                                response.append('Extracted {}<br />\n'.format(wavfile_path))
                             # we don't want to create a whole bunch of
                             # duplicate records. I think the filename,
                             # type and transcription should be enough
@@ -140,7 +122,7 @@ class ImportAudiologPlugin(plugin.STTTrainerPlugin):
                                 )
                                 response.append("Added row to audiolog<br />\n")
                                 conn.commit()
-                    response.append("Finished importing archive")
+                    response.append("<h3>Finished importing archive</h3>")
                 except KeyError:
                     response.append("could not extract audiolog_temp.db")
         except Exception as e:
