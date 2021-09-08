@@ -27,8 +27,10 @@ class ImportAudiologPlugin(plugin.STTTrainerPlugin):
             if(command=="processArchive"):
                 fileitem = fields['file']
                 filepath=os.path.join(audiolog_dir,'audiolog.tgz')
+                print("Saving file as {}".format(filepath))
                 with open(filepath, 'wb') as f:
                     f.write(fileitem.file.read())
+                print("Saved file")
                 response.append('Saved file as {}<br />\n'.format(filepath))
                 # extract the audiolog_temp.db file
                 try:
@@ -36,9 +38,11 @@ class ImportAudiologPlugin(plugin.STTTrainerPlugin):
                         audiolog_temp_path = os.path.join(audiolog_dir, 'audiolog_temp.db')
                         with open(audiolog_temp_path, 'wb') as f:
                             f.write(archive_file.extractfile('audiolog_temp.db').read())
-                        response.append("extracted audiolog_temp.db")
+                        print("extracted audiolog_temp.db")
+                        response.append("Extracted audiolog_temp.db")
                         # Now open the audiolog_temp database with sqlite3
                         temp_conn = sqlite3.connect(audiolog_temp_path)
+                        print("Connected to audiolog_temp database")
                         temp_conn.row_factory = sqlite3.Row
                         query = " ".join([
                             "select",
@@ -60,10 +64,14 @@ class ImportAudiologPlugin(plugin.STTTrainerPlugin):
                         for row in temp_conn.execute(query):
                             # If filename does not exist in the filesystem
                             wavfile_path = os.path.join(audiolog_dir, row['filename'])
-                            if(not os.path.isfile(wavfile_path)):
+                            if(os.path.isfile(wavfile_path)):
+                                print("Skipping file {} (already exists)".format(row['filename']))
+                            else:
+                                print("Extracting {}".format(row['filename']))
                                 response.append("extracting {}<br />\n".format(row['filename']))
                                 with open(wavfile_path, 'wb') as f:
                                     f.write(archive_file.extractfile(row['filename']).read())
+                                print("Extraction complete")
                                 response.append('Extracted {}<br />\n'.format(wavfile_path))
                             # we don't want to create a whole bunch of
                             # duplicate records. I think the filename,
@@ -86,6 +94,7 @@ class ImportAudiologPlugin(plugin.STTTrainerPlugin):
                                 )
                             ).fetchone()[0]:
                                 # Insert the current line into audiolog
+                                print("Inserting record into audiolog")
                                 conn.execute(
                                     " ".join([
                                         "insert into audiolog(",
